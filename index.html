@@ -2,63 +2,90 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>SnapMap Lite — Demo</title>
+  <title>SnapMap Lite — Enhanced</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.heat/dist/leaflet-heat.css" />
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="app">
     <header>
-      <h1>SnapMap Lite — Demo</h1>
+      <h1>SnapMap Lite — Enhanced 🚀</h1>
       <div class="controls">
+        <button id="loginBtn" class="btn">Login</button>
+        <button id="logoutBtn" class="btn secondary" style="display:none">Logout</button>
         <label class="small">Avatar:
           <input id="avatarInput" type="file" accept="image/*" />
         </label>
         <button id="toggleSim" class="btn">Toggle Sim Friends</button>
-        <button id="spawnItem" class="btn">Spawn Item (game)</button>
+        <button id="spawnItem" class="btn">Spawn Item 🎁</button>
         <button id="openInventory" class="btn">Inventory 💼</button>
+        <button id="openCosmetics" class="btn">Cosmetics ✨</button>
       </div>
     </header>
-
     <main>
       <aside class="sidebar">
         <div class="profile">
-          <img id="myAvatar" src="assets/avatar-default.png" alt="avatar">
+          <div class="avatar-wrapper">
+            <img id="myAvatar" src="assets/avatar-default.png" alt="avatar">
+            <div id="avatarCosmetics" class="avatar-cosmetics"></div>
+          </div>
           <div>
             <div id="displayName" contenteditable="true" class="name">You</div>
-            <div class="small">Balance: $<span id="balance">100</span> (demo)</div>
+            <div class="small">Balance: $<span id="balance">100</span></div>
             <div class="small">Status: <span id="status">Initializing…</span></div>
+            <div class="small">👤 <span id="authStatus">Not logged in</span></div>
           </div>
         </div>
-
+        <div class="map-controls">
+          <button id="toggleTrail" class="btn small-btn">🛤️ Trail</button>
+          <button id="toggleHeatmap" class="btn small-btn">🔥 Heatmap</button>
+          <button id="toggleAR" class="btn small-btn">📍 AR Hints</button>
+        </div>
         <div class="legend">
           <h3>Legend</h3>
           <ul>
             <li>📍 = You</li>
-            <li>🙂 = Simulated friend</li>
-            <li>🎁 = Tradeable item (tap to buy)</li>
+            <li>🙂 = Friends</li>
+            <li>🎁 = Items</li>
+            <li>🛤️ = Your trail</li>
+            <li>🔥 = Activity heatmap</li>
           </ul>
         </div>
-
         <div class="notes">
           <strong>Privacy</strong>
-          <p>Location sharing is local to this browser session. To share with others you will need a real backend (instructions in README).</p>
+          <p>Location sharing with Firebase. Sign in to sync with friends!</p>
         </div>
       </aside>
-
       <section class="map-wrap">
         <div id="map"></div>
+        <div id="arOverlay" class="ar-overlay hidden"></div>
       </section>
     </main>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>🔐 Sign In</h3>
+      <input type="email" id="emailInput" placeholder="Email" class="input-field" />
+      <input type="password" id="passwordInput" placeholder="Password" class="input-field" />
+      <div class="modal-actions">
+        <button id="signInBtn" class="btn">Sign In</button>
+        <button id="signUpBtn" class="btn secondary">Sign Up</button>
+        <button id="closeLoginBtn" class="btn secondary">Cancel</button>
+      </div>
+      <div id="authError" class="error-msg"></div>
+    </div>
   </div>
 
   <!-- Inventory modal -->
   <div id="inventoryModal" class="modal hidden">
     <div class="modal-content">
-      <h3>Your Inventory</h3>
+      <h3>Your Inventory 💼</h3>
       <div id="inventoryList"></div>
       <div class="modal-actions">
         <button id="closeInventory" class="btn secondary">Close</button>
@@ -67,7 +94,46 @@
     </div>
   </div>
 
+  <!-- Cosmetics Shop Modal -->
+  <div id="cosmeticsModal" class="modal hidden">
+    <div class="modal-content wide">
+      <h3>✨ Avatar Cosmetics Shop</h3>
+      <div class="cosmetics-grid" id="cosmeticsGrid">
+        <!-- Dynamically populated -->
+      </div>
+      <div class="modal-actions">
+        <button id="closeCosmetics" class="btn secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+    // TODO: Replace with your Firebase config
+    const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "snapmap-lite.firebaseapp.com",
+  databaseURL: "https://snapmap-lite.firebaseio.com",
+  projectId: "snapmap-lite",
+  storageBucket: "snapmap-lite.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
+};
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseApp = app;
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDB = getDatabase(app);
+    window.firebaseStorage = getStorage(app);
+  </script>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="js/app.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="js/app.js" type="module"></script>
 </body>
 </html>
