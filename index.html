@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SnapMap Lite — Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""/>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>SnapMap Lite — Demo</h1>
+      <div class="controls">
+        <label class="small">Avatar:
+          <input id="avatarInput" type="file" accept="image/*" />
+        </label>
+        <button id="toggleSim" class="btn">Toggle Sim Friends</button>
+        <button id="spawnItem" class="btn">Spawn Item (game)</button>
+        <button id="openInventory" class="btn">Inventory 💼</button>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <div class="profile">
+          <img id="myAvatar" src="assets/avatar-default.png" alt="avatar">
+          <div>
+            <div id="displayName" contenteditable="true" class="name">You</div>
+            <div class="small">Balance: $<span id="balance">100</span> (demo)</div>
+            <div class="small">Status: <span id="status">Initializing…</span></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <h3>Legend</h3>
+          <ul>
+            <li>📍 = You</li>
+            <li>🙂 = Simulated friend</li>
+            <li>🎁 = Tradeable item (tap to buy)</li>
+          </ul>
+        </div>
+
+        <div class="notes">
+          <strong>Privacy</strong>
+          <p>Location sharing is local to this browser session. To share with others you will need a real backend (instructions in README).</p>
+        </div>
+      </aside>
+
+      <section class="map-wrap">
+        <div id="map"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Inventory modal -->
+  <div id="inventoryModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Your Inventory</h3>
+      <div id="inventoryList"></div>
+      <div class="modal-actions">
+        <button id="closeInventory" class="btn secondary">Close</button>
+        <button id="sellAll" class="btn">Sell All for 50%</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
