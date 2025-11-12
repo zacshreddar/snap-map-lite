@@ -24,6 +24,7 @@
         <button id="spawnItem" class="btn">Spawn Item 🎁</button>
         <button id="openInventory" class="btn">Inventory 💼</button>
         <button id="openCosmetics" class="btn">Cosmetics ✨</button>
+        <button id="openListingModal" class="btn">Post Listing</button>
       </div>
     </header>
     <main>
@@ -67,7 +68,7 @@
     </main>
   </div>
 
-  <!-- Login Modal -->
+  <!-- Login Modal (you already had this) -->
   <div id="loginModal" class="modal hidden">
     <div class="modal-content">
       <h3>🔐 Sign In</h3>
@@ -82,32 +83,51 @@
     </div>
   </div>
 
-  <!-- Inventory modal -->
+  <!-- Inventory modal (unchanged, reused for listings preview) -->
   <div id="inventoryModal" class="modal hidden">
     <div class="modal-content">
-      <h3>Your Inventory 💼</h3>
+      <h3>Your Inventory & Listings 💼</h3>
       <div id="inventoryList"></div>
       <div class="modal-actions">
         <button id="closeInventory" class="btn secondary">Close</button>
-        <button id="sellAll" class="btn">Sell All for 50%</button>
+        <button id="sellAll" class="btn">Clear Listings</button>
       </div>
     </div>
   </div>
 
-  <!-- Cosmetics Shop Modal -->
-  <div id="cosmeticsModal" class="modal hidden">
-    <div class="modal-content wide">
-      <h3>✨ Avatar Cosmetics Shop</h3>
-      <div class="cosmetics-grid" id="cosmeticsGrid">
-        <!-- Dynamically populated -->
-      </div>
+  <!-- Listing Modal (new) -->
+  <div id="listingModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Create Listing</h3>
+      <input id="listingNameInput" placeholder="Item name (e.g. Liquor, Car hire)" class="input-field" />
+      <select id="listingCategory" class="input-field">
+        <option>Weed</option>
+        <option>Liquor</option>
+        <option>Car Hire</option>
+        <option>Other</option>
+      </select>
+      <input id="listingContactInput" placeholder="Contact (phone/email/discord)" class="input-field" />
       <div class="modal-actions">
-        <button id="closeCosmetics" class="btn secondary">Close</button>
+        <button id="submitListingBtn" class="btn">Post</button>
+        <button id="closeListingBtn" class="btn secondary">Cancel</button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase -->
+  <!-- Chat Modal (new) -->
+  <div id="chatModal" class="modal hidden">
+    <div class="modal-content wide">
+      <h3 id="chatWithTitle">Chat</h3>
+      <div id="chatWindow" class="chat-window"></div>
+      <div class="chat-input-row">
+        <input id="chatInput" class="input-field" placeholder="Type your message..." />
+        <button id="sendChatBtn" class="btn">Send</button>
+        <button id="closeChatBtn" class="btn secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase config (unchanged except you must replace placeholders) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -116,14 +136,14 @@
 
     // TODO: Replace with your Firebase config
     const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "snapmap-lite.firebaseapp.com",
-  databaseURL: "https://snapmap-lite.firebaseio.com",
-  projectId: "snapmap-lite",
-  storageBucket: "snapmap-lite.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
-};
+      apiKey: "YOUR_API_KEY",
+      authDomain: "snapmap-lite.firebaseapp.com",
+      databaseURL: "https://snapmap-lite.firebaseio.com",
+      projectId: "snapmap-lite",
+      storageBucket: "snapmap-lite.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abcdef"
+    };
 
     const app = initializeApp(firebaseConfig);
     window.firebaseApp = app;
@@ -137,3 +157,4 @@
   <script src="js/app.js" type="module"></script>
 </body>
 </html>
+
