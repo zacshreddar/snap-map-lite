@@ -1,163 +1,117 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>SnapMap Lite — Enhanced</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.heat/dist/leaflet-heat.css" />
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <div id="app">
-    <header>
-      <h1>SnapMap Lite — Enhanced 🚀</h1>
-      <div class="controls">
-        <button id="loginBtn" class="btn">Login</button>
-        <button id="logoutBtn" class="btn secondary" style="display:none">Logout</button>
-        <label class="small">Avatar:
-          <input id="avatarInput" type="file" accept="image/*" />
-        </label>
-        <button id="toggleSim" class="btn">Toggle Sim Friends</button>
-        <button id="spawnItem" class="btn">Spawn Item 🎁</button>
-        <button id="openInventory" class="btn">Inventory 💼</button>
-        <button id="openCosmetics" class="btn">Cosmetics ✨</button>
-        <button id="openListingModal" class="btn">Post Listing</button>
-      </div>
-    </header>
-    <main>
-      <aside class="sidebar">
-        <div class="profile">
-          <div class="avatar-wrapper">
-            <img id="myAvatar" src="assets/avatar-default.png" alt="avatar">
-            <div id="avatarCosmetics" class="avatar-cosmetics"></div>
-          </div>
-          <div>
-            <div id="displayName" contenteditable="true" class="name">You</div>
-            <div class="small">Balance: $<span id="balance">100</span></div>
-            <div class="small">Status: <span id="status">Initializing…</span></div>
-            <div class="small">👤 <span id="authStatus">Not logged in</span></div>
-          </div>
-        </div>
-        <div class="map-controls">
-          <button id="toggleTrail" class="btn small-btn">🛤️ Trail</button>
-          <button id="toggleHeatmap" class="btn small-btn">🔥 Heatmap</button>
-          <button id="toggleAR" class="btn small-btn">📍 AR Hints</button>
-        </div>
-        <div class="legend">
-          <h3>Legend</h3>
-          <ul>
-            <li>📍 = You</li>
-            <li>🙂 = Friends</li>
-            <li>🎁 = Items</li>
-            <li>🛤️ = Your trail</li>
-            <li>🔥 = Activity heatmap</li>
-          </ul>
-        </div>
-        <div class="notes">
-          <strong>Privacy</strong>
-          <p>Location sharing with Firebase. Sign in to sync with friends!</p>
-        </div>
-      </aside>
-      <section class="map-wrap">
-        <div id="map"></div>
-        <div id="arOverlay" class="ar-overlay hidden"></div>
-      </section>
-    </main>
-  </div>
+/* ================== Base ================== */
+* { box-sizing: border-box; margin:0; padding:0; }
+body, html { height: 100%; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f7f7; }
+#app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
 
-  <!-- Login Modal (you already had this) -->
-  <div id="loginModal" class="modal hidden">
-    <div class="modal-content">
-      <h3>🔐 Sign In</h3>
-      <input type="email" id="emailInput" placeholder="Email" class="input-field" />
-      <input type="password" id="passwordInput" placeholder="Password" class="input-field" />
-      <div class="modal-actions">
-        <button id="signInBtn" class="btn">Sign In</button>
-        <button id="signUpBtn" class="btn secondary">Sign Up</button>
-        <button id="closeLoginBtn" class="btn secondary">Cancel</button>
-      </div>
-      <div id="authError" class="error-msg"></div>
-    </div>
-  </div>
+/* ================== Header ================== */
+header {
+  grid-column: 1 / -1;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background:#111827;
+  color: #fff;
+  z-index: 1000;
+}
+header h1 { font-size:16px; }
+.controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.btn {
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  transition: 0.2s;
+}
+.btn:hover { background:#1d4ed8; }
+.btn.secondary { background:#6b7280; }
+.btn.secondary:hover { background:#4b5563; }
+.small { font-size:12px; color:#cbd5e1; }
+.small-btn { font-size:12px; padding:4px 8px; }
 
-  <!-- Inventory modal (unchanged, reused for listings preview) -->
-  <div id="inventoryModal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Your Inventory & Listings 💼</h3>
-      <div id="inventoryList"></div>
-      <div class="modal-actions">
-        <button id="closeInventory" class="btn secondary">Close</button>
-        <button id="sellAll" class="btn">Clear Listings</button>
-      </div>
-    </div>
-  </div>
+/* ================== Sidebar ================== */
+.sidebar {
+  background:#fff;
+  padding:16px;
+  border-right:1px solid #e5e7eb;
+  overflow-y:auto;
+}
+.profile { display:flex; gap:12px; margin-bottom:16px; }
+.avatar-wrapper img {
+  width:72px; height:72px;
+  border-radius:12px;
+  object-fit:cover;
+  border:2px solid #2563eb;
+}
+.avatar-cosmetics { margin-top:6px; }
+.name { font-weight:bold; cursor:text; }
 
-  <!-- Listing Modal (new) -->
-  <div id="listingModal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Create Listing</h3>
-      <input id="listingNameInput" placeholder="Item name (e.g. Liquor, Car hire)" class="input-field" />
-      <select id="listingCategory" class="input-field">
-        <option>Weed</option>
-        <option>Liquor</option>
-        <option>Car Hire</option>
-        <option>Other</option>
-      </select>
-      <input id="listingContactInput" placeholder="Contact (phone/email/discord)" class="input-field" />
-      <div class="modal-actions">
-        <button id="submitListingBtn" class="btn">Post</button>
-        <button id="closeListingBtn" class="btn secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
+/* ================== Map ================== */
+.map-wrap { position: relative; height:100%; }
+#map { width:100%; height:100%; border-radius:6px; }
+.ar-overlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
 
-  <!-- Chat Modal (new) -->
-  <div id="chatModal" class="modal hidden">
-    <div class="modal-content wide">
-      <h3 id="chatWithTitle">Chat</h3>
-      <div id="chatWindow" class="chat-window"></div>
-      <div class="chat-input-row">
-        <input id="chatInput" class="input-field" placeholder="Type your message..." />
-        <button id="sendChatBtn" class="btn">Send</button>
-        <button id="closeChatBtn" class="btn secondary">Close</button>
-      </div>
-    </div>
-  </div>
+/* ================== Modals ================== */
+.modal {
+  position: fixed;
+  left:50%;
+  top:12%;
+  transform:translateX(-50%);
+  z-index:2000;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 8px 24px rgba(15,23,42,0.12);
+  width:360px;
+  max-width:95%;
+  padding:16px;
+}
+.modal.wide { width:640px; }
+.modal.hidden { display:none; }
+.modal-content { display:flex; flex-direction:column; gap:8px; }
+.input-field { width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:6px; }
+.modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
+.error-msg { color:red; font-size:12px; }
 
-  <!-- Firebase config (unchanged except you must replace placeholders) -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+/* ================== Inventory ================== */
+.inventory-item { padding:8px 6px; border-bottom:1px dashed #e5e7eb; font-size:14px; }
 
-    // TODO: Replace with your Firebase config
-    const firebaseConfig = {
-  apiKey: "AIzaSyAq8yzrDUtsJbVk9Vl-H5d18rFWvPl9T_4",
-  authDomain: "snapmap-lite.firebaseapp.com",
-  databaseURL: "https://snapmap-lite-default-rtdb.firebaseio.com",
-  projectId: "snapmap-lite",
-  storageBucket: "snapmap-lite.firebasestorage.app",
-  messagingSenderId: "874569389218",
-  appId: "1:874569389218:web:4dd9cd48cb2fa2a74e73fb",
-  measurementId: "G-R0MNRM3NCG"
-};
+/* ================== Chat ================== */
+.chat-window {
+  height:300px;
+  overflow-y:auto;
+  border:1px solid #e5e7eb;
+  padding:8px;
+  border-radius:6px;
+  background:#fafafa;
+  font-size:14px;
+}
+.chat-input-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
 
-    const app = initializeApp(firebaseConfig);
-    window.firebaseApp = app;
-    window.firebaseAuth = getAuth(app);
-    window.firebaseDB = getDatabase(app);
-    window.firebaseStorage = getStorage(app);
-  </script>
+/* ================== Legends ================== */
+.legend { margin-top:16px; }
+.legend ul { padding-left:16px; list-style:none; }
+.legend li { margin-bottom:4px; }
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-  <script src="js/app.js" type="module"></script>
-</body>
-</html>
+/* ================== Custom Avatar Markers ================== */
+.custom-avatar img {
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  object-fit:cover;
+}
+.item-marker { font-size:22px; text-align:center; }
+
+/* ================== Small Touches ================== */
+button:disabled { opacity:0.6; cursor:not-allowed; }
+
+
+
+
+
+
 
 
 
