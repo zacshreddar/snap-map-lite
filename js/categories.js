@@ -1,0 +1,1 @@
+export const categories = ['Weed', 'Liquor', 'Car Hire', 'Other'];
