@@ -1,111 +1,51 @@
-/* ================== Base ================== */
-* { box-sizing: border-box; margin:0; padding:0; }
-body, html { height: 100%; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f7f7; }
+/* base */
+* { box-sizing: border-box; }
+body, html { height: 100%; margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f7f7; }
 #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
 
-/* ================== Header ================== */
-header {
-  grid-column: 1 / -1;
-  display:flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 16px;
-  background:#111827;
-  color: #fff;
-  z-index: 1000;
-}
-header h1 { font-size:16px; }
-.controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-.btn {
-  background:#2563eb;
-  color:#fff;
-  border:none;
-  padding:6px 12px;
-  border-radius:6px;
-  cursor:pointer;
-  transition: 0.2s;
-}
-.btn:hover { background:#1d4ed8; }
+/* header + controls */
+header { grid-column: 1 / -1; display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:#111827; color:#fff; z-index: 1000; }
+header h1 { font-size:16px; margin:0; }
+.controls { display:flex; gap:8px; align-items:center; }
+.btn { background:#2563eb; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; }
 .btn.secondary { background:#6b7280; }
-.btn.secondary:hover { background:#4b5563; }
 .small { font-size:12px; color:#cbd5e1; }
-.small-btn { font-size:12px; padding:4px 8px; }
 
-/* ================== Sidebar ================== */
-.sidebar {
-  background:#fff;
-  padding:16px;
-  border-right:1px solid #e5e7eb;
-  overflow-y:auto;
-}
-.profile { display:flex; gap:12px; margin-bottom:16px; }
-.avatar-wrapper img {
-  width:72px; height:72px;
-  border-radius:12px;
-  object-fit:cover;
-  border:2px solid #2563eb;
-}
-.avatar-cosmetics { margin-top:6px; }
-.name { font-weight:bold; cursor:text; }
+/* sidebar */
+.sidebar { background:#fff; padding:16px; border-right:1px solid #e5e7eb; overflow:auto; }
+.avatar-wrapper img { width:72px; height:72px; border-radius:10px; object-fit:cover; }
 
-/* ================== Map ================== */
-.map-wrap { position: relative; height:100%; }
-#map { width:100%; height:100%; border-radius:6px; }
-.ar-overlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+/* map */
+.map-wrap { position: relative; }
+#map { width:100%; height: calc(100vh - 64px); }
 
-/* ================== Modals ================== */
-.modal {
-  position: fixed;
-  left:50%;
-  top:12%;
-  transform:translateX(-50%);
-  z-index:2000;
-  background:#fff;
-  border-radius:8px;
-  box-shadow:0 8px 24px rgba(15,23,42,0.12);
-  width:360px;
-  max-width:95%;
-  padding:16px;
-}
-.modal.wide { width:640px; }
+/* modal */
+.modal { position: fixed; left: 50%; transform: translateX(-50%); top: 12%; z-index: 1100; background:#fff; border-radius:8px; box-shadow:0 8px 24px rgba(15,23,42,0.12); width: 360px; max-width: 95%; }
 .modal.hidden { display:none; }
-.modal-content { display:flex; flex-direction:column; gap:8px; }
-.input-field { width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:6px; }
-.modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
-.error-msg { color:red; font-size:12px; }
+.modal .modal-content { padding: 16px; }
+.input-field { width:100%; padding:8px 10px; margin:8px 0; border:1px solid #e5e7eb; border-radius:6px; }
 
-/* ================== Inventory ================== */
-.inventory-item { padding:8px 6px; border-bottom:1px dashed #e5e7eb; font-size:14px; }
+/* wide modal */
+.modal.wide { width: 640px; }
 
-/* ================== Chat ================== */
-.chat-window {
-  height:300px;
-  overflow-y:auto;
-  border:1px solid #e5e7eb;
-  padding:8px;
-  border-radius:6px;
-  background:#fafafa;
-  font-size:14px;
-}
+/* chat */
+.chat-window { height: 320px; overflow:auto; border:1px solid #e5e7eb; padding:8px; border-radius:6px; background:#fafafa; }
 .chat-input-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
 
-/* ================== Legends ================== */
-.legend { margin-top:16px; }
-.legend ul { padding-left:16px; list-style:none; }
-.legend li { margin-bottom:4px; }
+/* inventory */
+.inventory-item { padding:8px 6px; border-bottom:1px dashed #e5e7eb; }
 
-/* ================== Custom Avatar Markers ================== */
-.custom-avatar img {
-  border-radius:50%;
-  width:40px;
-  height:40px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  object-fit:cover;
-}
-.item-marker { font-size:22px; text-align:center; }
+/* small touches */
+.legend ul { padding-left: 16px; }
+.avatar-cosmetics { margin-top:6px; }
 
-/* ================== Small Touches ================== */
-button:disabled { opacity:0.6; cursor:not-allowed; }
+/* custom avatar markers */
+.custom-avatar img { border-radius:50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.item-marker { font-size: 22px; text-align:center; }
+
+
+
+
 
 
 
