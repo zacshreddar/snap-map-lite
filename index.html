@@ -5,18 +5,10 @@
   <title>SnapMap Lite — Enhanced</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.heat/dist/leaflet-heat.css" />
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    /* Ensure modals cover everything when active */
-    .modal { z-index: 2000; }
-    .hidden { display:none; }
-    #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
-    main { display:flex; }
-    .map-wrap { flex:1; position:relative; }
-    #map { width:100%; height:100%; }
-    .avatar-cosmetics { margin-top:6px; }
-  </style>
 </head>
 <body>
   <div id="app">
@@ -25,14 +17,16 @@
       <div class="controls">
         <button id="loginBtn" class="btn">Login</button>
         <button id="logoutBtn" class="btn secondary" style="display:none">Logout</button>
-        <label class="small">Avatar: <input id="avatarInput" type="file" accept="image/*" /></label>
+        <label class="small">Avatar:
+          <input id="avatarInput" type="file" accept="image/*" />
+        </label>
         <button id="toggleSim" class="btn">Toggle Sim Friends</button>
         <button id="spawnItem" class="btn">Spawn Item 🎁</button>
         <button id="openInventory" class="btn">Inventory 💼</button>
+        <button id="openCosmetics" class="btn">Cosmetics ✨</button>
         <button id="openListingModal" class="btn">Post Listing</button>
       </div>
     </header>
-
     <main>
       <aside class="sidebar">
         <div class="profile">
@@ -47,24 +41,34 @@
             <div class="small">👤 <span id="authStatus">Not logged in</span></div>
           </div>
         </div>
+        <div class="map-controls">
+          <button id="toggleTrail" class="btn small-btn">🛤️ Trail</button>
+          <button id="toggleHeatmap" class="btn small-btn">🔥 Heatmap</button>
+          <button id="toggleAR" class="btn small-btn">📍 AR Hints</button>
+        </div>
         <div class="legend">
           <h3>Legend</h3>
           <ul>
             <li>📍 = You</li>
             <li>🙂 = Friends</li>
             <li>🎁 = Items</li>
-            <li>📌 = Listings</li>
+            <li>🛤️ = Your trail</li>
+            <li>🔥 = Activity heatmap</li>
           </ul>
         </div>
+        <div class="notes">
+          <strong>Privacy</strong>
+          <p>Location sharing with Firebase. Sign in to sync with friends!</p>
+        </div>
       </aside>
-
       <section class="map-wrap">
         <div id="map"></div>
+        <div id="arOverlay" class="ar-overlay hidden"></div>
       </section>
     </main>
   </div>
 
-  <!-- Login Modal -->
+  <!-- Login Modal (you already had this) -->
   <div id="loginModal" class="modal hidden">
     <div class="modal-content">
       <h3>🔐 Sign In</h3>
@@ -79,7 +83,7 @@
     </div>
   </div>
 
-  <!-- Inventory Modal -->
+  <!-- Inventory modal (unchanged, reused for listings preview) -->
   <div id="inventoryModal" class="modal hidden">
     <div class="modal-content">
       <h3>Your Inventory & Listings 💼</h3>
@@ -91,7 +95,7 @@
     </div>
   </div>
 
-  <!-- Listing Modal -->
+  <!-- Listing Modal (new) -->
   <div id="listingModal" class="modal hidden">
     <div class="modal-content">
       <h3>Create Listing</h3>
@@ -110,7 +114,7 @@
     </div>
   </div>
 
-  <!-- Chat Modal -->
+  <!-- Chat Modal (new) -->
   <div id="chatModal" class="modal hidden">
     <div class="modal-content wide">
       <h3 id="chatWithTitle">Chat</h3>
@@ -123,22 +127,24 @@
     </div>
   </div>
 
-  <!-- Firebase setup -->
+  <!-- Firebase config (unchanged except you must replace placeholders) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
     import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
+    // TODO: Replace with your Firebase config
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DB_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MSG_ID",
-      appId: "YOUR_APP_ID"
-    };
+  apiKey: "AIzaSyAq8yzrDUtsJbVk9Vl-H5d18rFWvPl9T_4",
+  authDomain: "snapmap-lite.firebaseapp.com",
+  databaseURL: "https://snapmap-lite-default-rtdb.firebaseio.com",
+  projectId: "snapmap-lite",
+  storageBucket: "snapmap-lite.firebasestorage.app",
+  messagingSenderId: "874569389218",
+  appId: "1:874569389218:web:4dd9cd48cb2fa2a74e73fb",
+  measurementId: "G-R0MNRM3NCG"
+};
 
     const app = initializeApp(firebaseConfig);
     window.firebaseApp = app;
@@ -148,9 +154,11 @@
   </script>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="js/app.js" type="module"></script>
 </body>
 </html>
+
 
 
 
