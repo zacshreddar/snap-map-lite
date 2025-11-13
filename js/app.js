@@ -1,7 +1,10 @@
-// js/app.js
-// SnapMap Lite — merged multiplayer app
+// js/app.js (UPDATED)
+// SnapMap Lite — merged multiplayer app (improved: listings + fullscreen map)
+// Note: requires js/categories.js (exported `categories`) to be available
+
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { ref, set, update, onValue, push, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+import { categories } from './categories.js'; // simple categories list
 
 // Firebase references created in index.html
 const auth = window.firebaseAuth;
@@ -69,6 +72,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
+// layers
+const itemsLayer = L.layerGroup().addTo(map);
+const listingsLayer = L.layerGroup().addTo(map); // all users' listings as pins
+
 // helper for avatar icons
 function createAvatarIcon(dataUrl, size = 48) {
   return L.divIcon({
@@ -106,6 +113,19 @@ function startSimMovement(){
 }
 function stopSimMovement(){ if(simTimer){ clearInterval(simTimer); simTimer = null; } }
 if(simEnabled) startSimMovement();
+
+/* ---------------- Populate categories select ---------------- */
+function populateCategoriesSelect() {
+  if(!listingCategory) return;
+  listingCategory.innerHTML = '';
+  categories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    listingCategory.appendChild(opt);
+  });
+}
+populateCategoriesSelect();
 
 /* ---------------- Firebase: Auth handlers ---------------- */
 loginBtn.addEventListener('click', ()=> loginModal.classList.remove('hidden'));
@@ -151,12 +171,6 @@ logoutBtn.addEventListener('click', async () => {
   await signOut(auth);
 });
 
-/* use modular methods for signIn/create — need to import them earlier */
-import { signInWithEmailAndPassword as _signInWithEmailAndPassword, createUserWithEmailAndPassword as _createUserWithEmailAndPassword, signOut as _signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-// The above re-import is just to ensure functions exist — we are using original imports at top too.
-
-/* BUT we already imported signInWithEmailAndPassword etc. earlier — disregard duplicate import */
-
 /* ---------------- Utility to read displayName DOM */
 function displayNameElText(){ return (document.getElementById('displayName')?.textContent || 'You').trim(); }
 
@@ -168,6 +182,10 @@ onAuthStateChanged(auth, async user => {
     document.getElementById('authStatus').textContent = `Logged in: ${user.email || myUid}`;
     loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
+
+    // Make map fullscreen by adding class to body
+    document.body.classList.add('map-only');
+
     // listen to my user object
     const myRef = ref(db, 'users/' + myUid);
     onValue(myRef, snapshot => {
@@ -189,7 +207,7 @@ onAuthStateChanged(auth, async user => {
       }
     });
 
-    // listen to all users (players). We'll display markers and show listings on click
+    // listen to all users (players). We'll display markers and show listings on the map
     const usersRef = ref(db, 'users');
     onValue(usersRef, snapshot => {
       const all = snapshot.val() || {};
@@ -200,7 +218,7 @@ onAuthStateChanged(auth, async user => {
           delete players[uid];
         }
       });
-      // update/add
+      // update/add players and rebuild listings layer
       Object.entries(all).forEach(([uid, data]) => {
         if(uid === myUid) return; // skip self (we handle own marker separately)
         if(players[uid]) {
@@ -215,7 +233,7 @@ onAuthStateChanged(auth, async user => {
           const marker = L.marker([data.lat || 0, data.lon || 0], { icon: createAvatarIcon(data.avatarDataUrl || 'assets/avatar-default.png', 40) }).addTo(map);
           marker.bindPopup(() => {
             // dynamic popup showing name and listings with contact + "Message" button
-            let html = `<strong>${data.name || 'Player'}</strong><br>`;
+            let html = `<strong>${escapeHtml(data.name || 'Player')}</strong><br>`;
             if(data.inventory && Array.isArray(data.inventory) && data.inventory.length > 0) {
               html += '<hr><strong>Listings</strong><br>';
               data.inventory.slice().reverse().forEach(it => {
@@ -241,6 +259,9 @@ onAuthStateChanged(auth, async user => {
           players[uid] = { marker, data };
         }
       });
+
+      // rebuild listings layer for all users
+      rebuildListingsLayer(all);
     });
 
   } else {
@@ -248,11 +269,18 @@ onAuthStateChanged(auth, async user => {
     document.getElementById('authStatus').textContent = 'Not logged in';
     loginBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
+
+    // remove map-only class so UI returns
+    document.body.classList.remove('map-only');
+
     // remove players markers
     Object.keys(players).forEach(uid => {
       try { map.removeLayer(players[uid].marker); } catch(e){}
       delete players[uid];
     });
+
+    // clear listings layer
+    listingsLayer.clearLayers();
   }
 });
 
@@ -283,7 +311,7 @@ avatarInput.addEventListener('change', (e) => {
   reader.onload = async () => {
     myState.avatarDataUrl = reader.result;
     myAvatarImg.src = reader.result;
-    myMarker.setIcon(createAvatarIcon(myState.avatarDataUrl, 48));
+    try { myMarker.setIcon(createAvatarIcon(myState.avatarDataUrl, 48)); } catch(e){}
     saveUserData();
   };
   reader.readAsDataURL(f);
@@ -312,7 +340,6 @@ if (navigator.geolocation) {
 }
 
 /* ---------------- Items (click to spawn) kept as-is (client-only) ---------------- */
-const itemsLayer = L.layerGroup().addTo(map);
 function spawnItemAt(lat, lon) {
   const id = 'item-' + Math.random().toString(36).slice(2,8);
   const price = Math.floor(Math.random()*50)+10;
@@ -378,7 +405,11 @@ sellAllBtn.addEventListener('click', () => {
 });
 
 /* ---------------- Create listing modal ---------------- */
-openListingModalBtn.addEventListener('click', () => listingModal.classList.remove('hidden'));
+openListingModalBtn.addEventListener('click', () => {
+  if(!myUid) { alert('Log in first'); return; }
+  // show form centered and prefill
+  listingModal.classList.remove('hidden');
+});
 closeListingBtn.addEventListener('click', () => listingModal.classList.add('hidden'));
 submitListingBtn.addEventListener('click', () => {
   if(!myUid) { alert('Log in first'); return; }
@@ -386,18 +417,74 @@ submitListingBtn.addEventListener('click', () => {
   const cat = listingCategory.value;
   const contact = listingContactInput.value.trim();
   if(!name || !contact) { alert('Fill all fields'); return; }
-  myState.inventory.push({
+  const newListing = {
     itemName: name,
     category: cat,
     contact,
     createdAt: Date.now()
-  });
+  };
+  myState.inventory = myState.inventory || [];
+  myState.inventory.push(newListing);
   saveUserData();
+  // optional: also add a short-lived listing marker at your location so it appears immediately
+  addListingMarkerForUser(myUid, myState, newListing);
   listingNameInput.value = '';
   listingContactInput.value = '';
   listingModal.classList.add('hidden');
   renderInventory();
 });
+
+/* ---------------- Listings layer helpers ---------------- */
+function rebuildListingsLayer(allUsersObj) {
+  listingsLayer.clearLayers();
+  if(!allUsersObj) return;
+  Object.entries(allUsersObj).forEach(([uid, userData]) => {
+    if(!userData || !userData.inventory || !Array.isArray(userData.inventory)) return;
+    const baseLat = userData.lat || 0;
+    const baseLon = userData.lon || 0;
+    // place each listing slightly offset so multiple listings don't overlap exactly
+    userData.inventory.forEach((it, idx) => {
+      const offset = (idx % 5) * 0.00007;
+      const lat = baseLat + offset;
+      const lon = baseLon + ((Math.floor(idx/5) % 5) * 0.00007);
+      const marker = L.marker([lat, lon], {
+        icon: L.divIcon({ className: 'listing-marker', html: '📌', iconSize: [28,28], iconAnchor: [14,14] })
+      }).addTo(listingsLayer);
+      marker.bindPopup(buildListingPopupHtml(it, uid, userData));
+      marker.on('popupopen', () => {
+        // attach message button if present
+        setTimeout(()=> {
+          const btn = document.querySelector(`.msg-btn-listing[data-uid="${uid}"]`);
+          if(btn) btn.onclick = () => openDirectChat(uid);
+        }, 60);
+      });
+    });
+  });
+}
+
+function addListingMarkerForUser(uid, userData, listing) {
+  // Add a temporary marker for newly posted listing (so user sees it instantly)
+  const lat = userData.lat || myState.lat || 0;
+  const lon = userData.lon || myState.lon || 0;
+  const marker = L.marker([lat + 0.00005, lon + 0.00003], {
+    icon: L.divIcon({ className: 'listing-marker', html: '📌', iconSize: [28,28], iconAnchor: [14,14] })
+  }).addTo(listingsLayer);
+  marker.bindPopup(buildListingPopupHtml(listing, uid, userData)).openPopup();
+  // will be replaced on next usersRef snapshot by rebuildListingsLayer
+}
+
+function buildListingPopupHtml(listing, ownerUid, ownerData) {
+  const ownerName = ownerData && ownerData.name ? escapeHtml(ownerData.name) : 'Seller';
+  return `
+    <div style="min-width:200px;">
+      <strong>${escapeHtml(listing.itemName)}</strong><br>
+      <em>${escapeHtml(listing.category)}</em><br>
+      <div style="margin-top:6px;">Contact: ${escapeHtml(listing.contact)}</div>
+      <div style="margin-top:8px;">Seller: ${ownerName}</div>
+      <div style="margin-top:8px;"><button class="msg-btn-listing" data-uid="${ownerUid}">Message Seller</button></div>
+    </div>
+  `;
+}
 
 /* ---------------- Chat system (direct messages) ---------------- */
 /*
@@ -484,5 +571,8 @@ function loadState(){
 function saveStateLocal(){ localStorage.setItem(SAVE_KEY, JSON.stringify(myState)); }
 window.addEventListener('beforeunload', saveStateLocal);
 loadState();
+
+
+
 
 
