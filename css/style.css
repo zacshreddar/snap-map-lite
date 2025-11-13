@@ -19,7 +19,8 @@ button.small-btn{padding:6px 8px;font-size:12px}
 main{display:flex;height:calc(100% - 64px)}
 .sidebar{width:300px;padding:12px;border-right:1px solid rgba(0,0,0,0.04);background:linear-gradient(180deg,#fff,#fbfeff);overflow-y:auto}
 .map-wrap{flex:1;position:relative}
-#map{position:absolute;inset:0}
+/* CRITICAL: Google Maps requires explicit height */
+#map{position:absolute;inset:0; height: 100%; width: 100%;} 
 .profile{display:flex;gap:12px;align-items:center;margin-bottom:12px}
 .avatar-wrapper{position:relative;width:64px;height:64px}
 .profile img{width:64px;height:64px;border-radius:12px;object-fit:cover;border:2px solid rgba(0,0,0,0.06)}
@@ -56,25 +57,19 @@ main{display:flex;height:calc(100% - 64px)}
 #chatWindow > div{margin-bottom:8px;padding:6px;background:white;border-radius:6px}
 #chatInput{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px}
 
-/* CUSTOM MARKERS */
-.leaflet-marker-icon.custom-avatar{border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25)}
-.item-marker{background:transparent;border:0;text-align:center;font-size:36px}
-.friend-marker{background:transparent;border:0;text-align:center;font-size:40px}
-
-/* LEAFLET POPUP CUSTOMIZATION */
-.leaflet-popup-content{min-width:200px}
-.leaflet-popup-content button{margin-top:8px}
+/* REMOVED: Leaflet-specific marker styling */
 
 /* RESPONSIVE */
 @media(max-width:768px){
-  body.map-only header{padding:8px 12px}
-  header h1{font-size:14px}
-  .controls{font-size:11px;gap:4px}
-  .controls button{padding:6px 8px;font-size:11px}
-  .sidebar{width:100%;height:auto;border-right:0;border-bottom:1px solid rgba(0,0,0,0.04)}
-  main{flex-direction:column}
-  .modal-content{width:95%;padding:16px}
+  body.map-only header{padding:8px 12px}
+  header h1{font-size:14px}
+  .controls{font-size:11px;gap:4px}
+  .controls button{padding:6px 8px;font-size:11px}
+  .sidebar{width:100%;height:auto;border-right:0;border-bottom:1px solid rgba(0,0,0,0.04)}
+  main{flex-direction:column}
+  .modal-content{width:95%;padding:16px}
 }
+
 
 
 
