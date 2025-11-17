@@ -1,69 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SnapMap Lite</title>
-<link rel="stylesheet" href="css/style.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header>
-<h1>SnapMap Lite</h1>
-<div class="auth-status">
-<button id="loginBtn">Login</button>
-<button id="logoutBtn" class="hidden">Logout</button>
-<span id="authStatus">Not logged in</span>
-</div>
-</header>
 
-
-<main>
-<aside id="sidebar">
-<section class="user-info">
-<img id="myAvatar" src="assets/avatar-default.png" alt="Avatar" />
-<input type="file" id="avatarInput" accept="image/*" />
-<div id="displayName">You</div>
-<div id="balance">$0</div>
-<div id="status">Location: Unknown</div>
-</section>
-
-
-<section class="controls">
-<button id="toggleSim">Toggle Simulation</button>
-<button id="spawnItem">Spawn Item</button>
-<button id="openInventory">Inventory</button>
-<button id="openListingModal">New Listing</button>
-</section>
-</aside>
-
-
-<section id="map"></section>
-</main>
-
-
-<!-- Modals -->
-<div id="loginModal" class="modal hidden">
-<div class="modal-content">
-<h2>Sign In / Sign Up</h2>
-<input id="emailInput" placeholder="Email" type="email" />
-<input id="passwordInput" placeholder="Password" type="password" />
-<div class="btn-row">
-<button id="signInBtn">Sign In</button>
-<button id="signUpBtn">Sign Up</button>
-<button id="closeLoginBtn">Close</button>
-</div>
-<div id="authError" class="error"></div>
-</div>
+<!-- Floating Header -->
+<div id="header">
+  <div id="authStatus">Not logged in</div>
+  <div id="userPanel">
+    <img id="myAvatar" src="assets/default-profile.png" alt="Profile" />
+    <span id="displayName">You</span>
+    <span id="balance">$0</span>
+    <button id="loginBtn">Login</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
 </div>
 
+<!-- Sidebar Filters -->
+<div id="sidebar">
+  <h3>Filter Listings</h3>
+  <select id="filterCategory"></select>
+</div>
 
-<div id="inventoryModal" class="modal hidden">
-<div class="modal-content">
-<h2>My Listings</h2>
-<div id="inventoryList"></div>
-<div class="btn-row">
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Login Modal -->
+<div class="modal hidden" id="loginModal">
+  <div class="modal-content">
+    <span class="close" id="closeLoginBtn">&times;</span>
+    <h2>Login / Sign Up</h2>
+    <input type="email" id="emailInput" placeholder="Email" />
+    <input type="password" id="passwordInput" placeholder="Password" />
+    <div id="authError" class="error"></div>
+    <button id="signInBtn">Sign In</button>
+    <button id="signUpBtn">Sign Up</button>
+  </div>
+</div>
+
+<!-- Inventory Modal -->
+<div class="modal hidden" id="inventoryModal">
+  <div class="modal-content">
+    <span class="close" id="closeInventory">&times;</span>
+    <h3>Inventory</h3>
+    <div id="inventoryList"></div>
+    <button id="sellAll">Clear All</button>
+  </div>
+</div>
+
+<!-- Listing Modal -->
+<div class="modal hidden" id="listingModal">
+  <div class="modal-content">
+    <span class="close" id="closeListingBtn">&times;</span>
+    <h3>Add Listing</h3>
+    <input type="text" id="listingNameInput" placeholder="Item Name">
+    <select id="listingCategory"></select>
+    <input type="text" id="listingContactInput" placeholder="Contact">
+    <button id="submitListingBtn">Submit</button>
+  </div>
+</div>
+
+<!-- Chat Modal -->
+<div class="modal hidden" id="chatModal">
+  <div class="modal-content">
+    <span class="close" id="closeChatBtn">&times;</span>
+    <h3 id="chatWithTitle">Chat</h3>
+    <div id="chatWindow" class="chat-window"></div>
+    <input type="text" id="chatInput" placeholder="Type a message">
+    <button id="sendChatBtn">Send</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
 </html>
+
+
 
 
 
