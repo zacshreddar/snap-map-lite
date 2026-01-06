@@ -1,281 +1,44 @@
-/* =========================
-   BASE
-========================= */
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
+body {
   margin: 0;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-  background: #f3f4f6;
-  color: #111827;
-}
-
-#app {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  height: 100vh;
-}
-
-/* =========================
-   HEADER
-========================= */
-header {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #111827, #1f2933);
-  color: #fff;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-header h1 {
-  font-size: 16px;
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-.btn {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn.secondary {
-  background: #6b7280;
-}
-
-.btn.secondary:hover {
-  background: #4b5563;
-}
-
-.icon-btn {
-  background: #374151;
-  color: #fff;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.icon-btn:hover {
-  background: #4b5563;
-  transform: scale(1.05);
-}
-
-.small {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* =========================
-   SIDEBAR
-========================= */
-.sidebar {
-  background: #ffffff;
-  padding: 16px;
-  border-right: 1px solid #e5e7eb;
-  overflow-y: auto;
-}
-
-.profile {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.avatar-wrapper img {
-  width: 72px;
-  height: 72px;
-  border-radius: 14px;
-  object-fit: cover;
-  border: 2px solid #e5e7eb;
-  background: #f9fafb;
-}
-
-.name {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.legend h3 {
-  margin-top: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.legend ul {
-  padding-left: 18px;
-  margin: 6px 0 0;
-}
-
-.legend li {
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-/* =========================
-   MAP
-========================= */
-.map-wrap {
-  position: relative;
-  background: #e5e7eb;
-}
-
-#map {
-  width: 100%;
-  height: calc(100vh - 56px);
-}
-
-/* =========================
-   MODALS
-========================= */
-.modal {
-  position: fixed;
-  top: 12%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1100;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
-  width: 360px;
-  max-width: 95%;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  padding: 16px;
-}
-
-.modal-content h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-/* Wide modal */
-.modal.wide {
-  width: 640px;
-}
-
-/* =========================
-   INPUTS
-========================= */
-.input-field {
-  width: 100%;
-  padding: 9px 10px;
-  margin: 8px 0;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 13px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
-}
-
-/* =========================
-   CHAT
-========================= */
-.chat-window {
-  height: 320px;
-  overflow-y: auto;
-  border: 1px solid #e5e7eb;
-  padding: 8px;
-  border-radius: 8px;
-  background: #f9fafb;
-  font-size: 13px;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
-}
-
-/* =========================
-   INVENTORY
-========================= */
-.inventory-item {
-  padding: 8px 6px;
-  border-bottom: 1px dashed #e5e7eb;
-  font-size: 13px;
-}
-
-/* =========================
-   AVATAR & MAP MARKERS
-========================= */
-.avatar-cosmetics {
-  margin-top: 6px;
-}
-
-.custom-avatar img {
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-}
-
-.item-marker {
-  font-size: 22px;
+  font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom, #f0f8ff, #e6f7ff);
+  color: #333;
   text-align: center;
 }
 
-/* =========================
-   UTILITIES
-========================= */
-.hidden {
-  display: none;
+h1 {
+  margin: 10px 0;
+  font-size: 2rem;
+  color: #ff4500;
+  text-shadow: 1px 1px #fff;
 }
+
+p {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+}
+
+#map {
+  width: 95%;
+  height: 80vh;
+  margin: 0 auto;
+  border: 5px solid #ff4500;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+.leaflet-popup-content-wrapper {
+  background: #fff8dc;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.leaflet-popup-content {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+
 
 
 
