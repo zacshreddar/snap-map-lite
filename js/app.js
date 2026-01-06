@@ -1,93 +1,55 @@
-import { db } from "./firebase.js";
-import { collection, addDoc, onSnapshot, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
-import { v4 as uuidv4 } from "https://jspm.dev/uuid";
-import L from "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.js";
-import "https://unpkg.com/leaflet.heat/dist/leaflet-heat.js";
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyAq8yzrDUtsJbVk9Vl-H5d18rFWvPl9T_4",
+  authDomain: "snapmap-lite.firebaseapp.com",
+  projectId: "snapmap-lite",
+  storageBucket: "snapmap-lite.appspot.com",
+  messagingSenderId: "874569389218",
+  appId: "1:874569389218:web:4dd9cd48cb2fa2a74e73fb"
+};
 
-// Anonymous user ID
-const userId = uuidv4();
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// Map setup
+// MAP INIT
 const map = L.map('map').setView([0,0], 2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// Firestore collections
-const pinsCol = collection(db, "pins");
-const peopleCol = collection(db, "people");
-
-// Heatmap layer
-let heat = L.heatLayer([], {radius: 25, blur: 15}).addTo(map);
-
-// Add a pin on map click
+// CLICK TO DROP PIN
 map.on('click', async (e) => {
   const text = prompt("Enter your note / vibe:");
   if (!text) return;
+  const color = prompt("Vibe color: red, blue, green (default red)") || "red";
 
-  const vibeColor = prompt("Vibe color: red, blue, green (default red)") || "red";
-
-  await addDoc(pinsCol, {
-    lat: e.latlng.lat,
-    lng: e.latlng.lng,
-    text,
-    color: vibeColor,
-    createdAt: serverTimestamp()
-  });
-});
-
-// Real-time pins & heatmap
-onSnapshot(pinsCol, (snapshot) => {
-  map.eachLayer(layer => { if (layer.options && layer.options.radius) map.removeLayer(layer); }); // clear old pins
-  const heatData = [];
-  
-  snapshot.docs.forEach(docSnap => {
-    const data = docSnap.data();
-    const created = data.createdAt?.toDate?.() || new Date();
-    const ageHours = (Date.now() - created)/36e5;
-    
-    if (ageHours > 24) deleteDoc(doc(db, "pins", docSnap.id)); // auto-expire
-
-    const marker = L.circleMarker([data.lat, data.lng], {
-      color: data.color,
-      radius: 8,
-      fillOpacity: 0.7
-    }).bindPopup(data.text).addTo(map);
-
-    heatData.push([data.lat, data.lng, 0.5]);
-  });
-
-  heat.setLatLngs(heatData);
-});
-
-// Live user location (optional)
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(async (pos) => {
-    const {latitude, longitude} = pos.coords;
-    await addDoc(peopleCol, {
-      userId,
-      lat: latitude,
-      lng: longitude,
-      updatedAt: serverTimestamp()
+  try {
+    await db.collection("pins").add({
+      lat: e.latlng.lat,
+      lng: e.latlng.lng,
+      text,
+      color,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-  });
-}
+  } catch (err) {
+    console.error("Error adding pin:", err);
+  }
+});
 
-// Real-time people markers
-const peopleMarkers = {};
-onSnapshot(peopleCol, (snapshot) => {
-  snapshot.docs.forEach(docSnap => {
-    const data = docSnap.data();
-    if (data.userId === userId) return; // skip self
-    if (!peopleMarkers[data.userId]) {
-      peopleMarkers[data.userId] = L.circleMarker([data.lat, data.lng], {
-        color: "blue",
-        radius: 5,
-        fillOpacity: 1
-      }).addTo(map);
-    } else {
-      peopleMarkers[data.userId].setLatLng([data.lat, data.lng]);
+// REAL-TIME PINS
+db.collection("pins").onSnapshot((snapshot) => {
+  snapshot.docChanges().forEach((change) => {
+    if (change.type === "added") {
+      const data = change.doc.data();
+      const marker = L.circleMarker([data.lat, data.lng], {
+        color: data.color,
+        radius: 8,
+        fillOpacity: 0.7
+      }).bindPopup(data.text).addTo(map);
     }
   });
 });
+
+
 
 
 
