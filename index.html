@@ -1,95 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌍 Live World Board</title>
-
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-<!-- Optional: simple styling -->
-<style>
-  html, body { height: 100%; margin: 0; font-family: Arial, sans-serif; }
-  h1, p { text-align: center; margin: 5px; }
-  #map { height: 80vh; width: 100%; border: 2px solid #333; border-radius: 8px; margin: 10px auto; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maestro Map</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Landing Page -->
+  <div id="landing" class="screen">
+    <img src="kenya-flag.jpg" alt="Kenya Flag" class="bg">
+    <h1>How well do you know Kenya?</h1>
+    <input type="text" id="playerName" placeholder="Enter a nickname">
+    <button id="playBtn">Play</button>
+  </div>
 
-<h1>🌍 Live World Board</h1>
-<p>Click on the map to drop a pin! Choose a vibe color and share a note.</p>
-<div id="map"></div>
+  <!-- Game Screen -->
+  <div id="gameContainer" class="screen hidden">
+    <canvas id="gameCanvas"></canvas>
+    <div id="questionContainer">
+      <h3 id="questionText"></h3>
+      <div id="answers"></div>
+    </div>
+    <div id="stats">
+      <span id="levelText">Level: 1</span> |
+      <span id="coinsText">Coins: 0</span>
+    </div>
+    <div id="leaderboard"></div>
+  </div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Firebase JS -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<!-- App JS -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-  // FIREBASE CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyAq8yzrDUtsJbVk9Vl-H5d18rFWvPl9T_4",
-    authDomain: "snapmap-lite.firebaseapp.com",
-    projectId: "snapmap-lite",
-    storageBucket: "snapmap-lite.appspot.com",
-    messagingSenderId: "874569389218",
-    appId: "1:874569389218:web:4dd9cd48cb2fa2a74e73fb"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // INITIALIZE MAP
-  const map = L.map('map').setView([0,0], 2); // global view
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  // CLICK TO DROP PIN
-  map.on('click', async (e) => {
-    const text = prompt("Enter your note / vibe:");
-    if (!text) return;
-    const color = prompt("Vibe color (red, blue, green, yellow):") || "red";
-
-    try {
-      await db.collection("pins").add({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng,
-        text,
-        color,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } catch (err) {
-      console.error("Error adding pin:", err);
-      alert("Failed to add pin. Check console.");
-    }
-  });
-
-  // REAL-TIME PINS
-  db.collection("pins").orderBy("createdAt").onSnapshot((snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === "added") {
-        const data = change.doc.data();
-        if (!data.lat || !data.lng) return;
-        L.circleMarker([data.lat, data.lng], {
-          color: data.color || "red",
-          radius: 8,
-          fillOpacity: 0.8
-        }).bindPopup(data.text).addTo(map);
-      }
-    });
-  });
-
-});
-</script>
-
+  <!-- Firebase SDK -->
+  <script type="module" src="firebaseConfig.js"></script>
+  <!-- App JS -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
 
