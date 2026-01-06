@@ -12,15 +12,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// MAP INIT
-const map = L.map('map').setView([0,0], 2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+// INITIALIZE MAP
+const map = L.map('map').setView([0, 0], 2); // global view
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
 // CLICK TO DROP PIN
 map.on('click', async (e) => {
   const text = prompt("Enter your note / vibe:");
   if (!text) return;
-  const color = prompt("Vibe color: red, blue, green (default red)") || "red";
+  const color = prompt("Vibe color (red, blue, green, yellow):") || "red";
 
   try {
     await db.collection("pins").add({
@@ -43,11 +45,12 @@ db.collection("pins").onSnapshot((snapshot) => {
       const marker = L.circleMarker([data.lat, data.lng], {
         color: data.color,
         radius: 8,
-        fillOpacity: 0.7
+        fillOpacity: 0.8
       }).bindPopup(data.text).addTo(map);
     }
   });
 });
+
 
 
 
