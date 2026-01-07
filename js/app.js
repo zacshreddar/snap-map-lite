@@ -1,167 +1,89 @@
 import { db } from './firebaseConfig.js';
-import { doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// DOM elements
-const landing = document.getElementById('landing');
-const playBtn = document.getElementById('playBtn');
-const playerNameInput = document.getElementById('playerName');
-const gameContainer = document.getElementById('gameContainer');
-const gameCanvas = document.getElementById('gameCanvas');
-const ctx = gameCanvas.getContext('2d');
-const questionText = document.getElementById('questionText');
-const answersDiv = document.getElementById('answers');
-const levelText = document.getElementById('levelText');
-const coinsText = document.getElementById('coinsText');
+// Initialize Leaflet map
+const map = L.map('map').setView([20, 0], 2); // global view
 
-gameCanvas.width = window.innerWidth;
-gameCanvas.height = window.innerHeight;
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
 
-let playerId = 'p' + Math.floor(Math.random()*100000);
-let playerName = '';
-let playerData = { x:100, y:300, level:1, coins:0 };
-let waterLevel = window.innerHeight;
-let stages = [];
-let allPlayers = {};
-let questions = [];
+// Category colors
+const categoryColors = {
+  "Colonial": "#e6194b",
+  "Culture": "#3cb44b",
+  "Freedom Struggle": "#ffe119",
+  "Myth": "#4363d8",
+  "Personal Story": "#f58231"
+};
 
-// Example stages (hidden locations on Kenya map)
-for(let i=1;i<=10;i++){
-  stages.push({level:i, x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight*0.7, coins: i*10});
-}
+// Add legend
+const legend = L.control({position: 'bottomleft'});
+legend.onAdd = function () {
+  const div = L.DomUtil.create('div', 'legend');
+  for (const cat in categoryColors) {
+    div.innerHTML += `
+      <div class="legend-item">
+        <div class="legend-color" style="background:${categoryColors[cat]}"></div>
+        <span>${cat}</span>
+      </div>
+    `;
+  }
+  return div;
+};
+legend.addTo(map);
 
-// Example questions (progressively harder)
-questions = [
-  {level:1, question:"What is used to drink tea?", options:["Cup","Spoon","Plate"], answer:"Cup", coins:5},
-  {level:2, question:"Capital of Kenya?", options:["Nairobi","Mombasa","Kisumu"], answer:"Nairobi", coins:10},
-  {level:3, question:"Kenya gained independence in?", options:["1963","1970","1950"], answer:"1963", coins:15},
-  {level:4, question:"National bird of Kenya?", options:["Lion","Guinea fowl","Eagle"], answer:"Guinea fowl", coins:20},
-  // Add more...
+// Example pins (10 worldwide)
+const examplePins = [
+  { title: "Mombasa Fort", description: "Built by the Portuguese in 1500s.", category: "Colonial", lat: -4.0435, lng: 39.6682 },
+  { title: "Nairobi National Museum", description: "Showcases Kenya's culture.", category: "Culture", lat: -1.2921, lng: 36.8219 },
+  { title: "Uhuru Park", description: "Freedom struggle demonstrations.", category: "Freedom Struggle", lat: -1.2850, lng: 36.8219 },
+  { title: "Mount Kenya Myth", description: "Home of legendary spirits.", category: "Myth", lat: -0.1521, lng: 37.3080 },
+  { title: "Jomo Kenyatta's House", description: "Personal story of Kenya's first president.", category: "Personal Story", lat: -1.2867, lng: 36.8172 },
+  { title: "Stonehenge", description: "Famous prehistoric monument in UK.", category: "Myth", lat: 51.1789, lng: -1.8262 },
+  { title: "Freedom Trail", description: "Historic path in Boston, USA.", category: "Freedom Struggle", lat: 42.3601, lng: -71.0589 },
+  { title: "Great Wall of China", description: "Ancient Chinese defensive architecture.", category: "Culture", lat: 40.4319, lng: 116.5704 },
+  { title: "Alhambra", description: "Moorish palace in Spain.", category: "Colonial", lat: 37.1761, lng: -3.5881 },
+  { title: "Machu Picchu", description: "Incan historical site in Peru.", category: "Culture", lat: -13.1631, lng: -72.5450 }
 ];
 
-function getQuestion(level){
-  const q = questions.filter(q=>q.level===level);
-  return q[Math.floor(Math.random()*q.length)];
-}
+// Optional: Preload example pins into Firebase (run only once)
+// Uncomment this block if your Firestore is empty
+/*
+examplePins.forEach(async pin => {
+  const docRef = doc(db, "historicalPins", pin.title.replace(/\s+/g, '_'));
+  await setDoc(docRef, pin);
+});
+*/
 
-const playerColors = {};
-function getPlayerColor(id){
-  if(!playerColors[id]){
-    playerColors[id] = `hsl(${Math.random()*360},70%,50%)`;
-  }
-  return playerColors[id];
-}
+// Load pins from Firestore
+async function loadPins() {
+  const pinsCol = collection(db, "historicalPins");
+  const pinsSnap = await getDocs(pinsCol);
 
-function updateLeaderboard(){
-  const leaderboard = document.getElementById('leaderboard');
-  const sorted = Object.entries(allPlayers).sort((a,b)=>b[1].coins - a[1].coins);
-  leaderboard.innerHTML = '<h4>Leaderboard</h4>'+sorted.map(p=>`<div style="color:${getPlayerColor(p[0])}">${p[1].level}:${p[1].coins}</div>`).join('');
-}
+  pinsSnap.forEach(docSnap => {
+    const data = docSnap.data();
+    const marker = L.circleMarker([data.lat, data.lng], {
+      radius: 8,
+      fillColor: categoryColors[data.category] || "#000",
+      color: "#fff",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    }).addTo(map);
 
-function spawnCoinEffect(x,y){
-  const coin = document.createElement('div');
-  coin.classList.add('coin-effect');
-  coin.style.left = x+'px';
-  coin.style.top = y+'px';
-  gameContainer.appendChild(coin);
-  setTimeout(()=>coin.remove(),1000);
-}
-
-function drawPlayers(){
-  Object.entries(allPlayers).forEach(([id,p])=>{
-    ctx.fillStyle = getPlayerColor(id);
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,20,0,2*Math.PI);
-    ctx.fill();
-    ctx.fillStyle="white";
-    ctx.font="12px Arial";
-    ctx.textAlign="center";
-    ctx.fillText(p.level,p.x,p.y+4);
+    marker.bindPopup(`
+      <b>${data.title}</b><br/>
+      Category: ${data.category}<br/>
+      ${data.description}
+    `);
   });
 }
 
-function loop(){
-  ctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
-  ctx.fillStyle='#1e90ff';
-  ctx.fillRect(0, waterLevel, gameCanvas.width, gameCanvas.height - waterLevel);
-  stages.forEach(stage=>{
-    ctx.fillStyle='gold';
-    ctx.beginPath();
-    ctx.arc(stage.x,stage.y,20,0,Math.PI*2);
-    ctx.fill();
-  });
-  drawPlayers();
-  updateLeaderboard();
-  requestAnimationFrame(loop);
-}
+loadPins();
 
-// Firebase: create or join game
-let gameId = 'kenyaGame';
-async function joinGame(){
-  const gameRef = doc(db,'games',gameId);
-  const gameSnap = await getDoc(gameRef);
-  if(!gameSnap.exists()){
-    await setDoc(gameRef,{players:{},createdAt:serverTimestamp()});
-  }
-  await updateDoc(gameRef,{[`players.${playerId}`]:playerData});
-
-  onSnapshot(gameRef,(snap)=>{
-    const data = snap.data();
-    allPlayers = data.players || {};
-  });
-}
-
-// Question handling
-function loadNextQuestion(level){
-  const q = getQuestion(level);
-  if(!q) return;
-  questionText.textContent = q.question;
-  answersDiv.innerHTML='';
-  q.options.forEach(opt=>{
-    const btn = document.createElement('button');
-    btn.textContent=opt;
-    btn.onclick=()=>handleAnswer(q,opt);
-    answersDiv.appendChild(btn);
-  });
-}
-
-async function handleAnswer(q,choice){
-  if(choice===q.answer){
-    playerData.coins+=q.coins;
-    playerData.level+=1;
-    const nextStage = stages.find(s=>s.level===playerData.level);
-    if(nextStage){
-      playerData.x = nextStage.x;
-      playerData.y = nextStage.y;
-      spawnCoinEffect(playerData.x,playerData.y);
-    }
-  } else {
-    waterLevel -= 30;
-  }
-  const gameRef = doc(db,'games',gameId);
-  await updateDoc(gameRef,{[`players.${playerId}`]:playerData});
-
-  levelText.textContent='Level: '+playerData.level;
-  coinsText.textContent='Coins: '+playerData.coins;
-
-  if(waterLevel<=0){
-    alert('You lost! Restarting...');
-    waterLevel = window.innerHeight;
-    playerData = { x:100, y:300, level:1, coins:0 };
-    await updateDoc(gameRef,{[`players.${playerId}`]:playerData});
-  } else {
-    loadNextQuestion(playerData.level);
-  }
-}
-
-// Start game
-playBtn.onclick=()=>{
-  playerName = playerNameInput.value || 'Anon';
-  landing.classList.add('hidden');
-  gameContainer.classList.remove('hidden');
-  joinGame();
-  loadNextQuestion(playerData.level);
-  loop();
 };
+
 
 
 
