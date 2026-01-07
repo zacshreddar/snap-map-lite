@@ -5,37 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maestro Map</title>
   <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
 </head>
 <body>
-  <!-- Landing Page -->
-  <div id="landing" class="screen">
-    <img src="kenya-flag.jpg" alt="Kenya Flag" class="bg">
-    <h1>How well do you know Kenya?</h1>
-    <input type="text" id="playerName" placeholder="Enter a nickname">
-    <button id="playBtn">Play</button>
-  </div>
+  <div id="map"></div>
 
-  <!-- Game Screen -->
-  <div id="gameContainer" class="screen hidden">
-    <canvas id="gameCanvas"></canvas>
-    <div id="questionContainer">
-      <h3 id="questionText"></h3>
-      <div id="answers"></div>
-    </div>
-    <div id="stats">
-      <span id="levelText">Level: 1</span> |
-      <span id="coinsText">Coins: 0</span>
-    </div>
-    <div id="leaderboard"></div>
-  </div>
-
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script type="module" src="firebaseConfig.js"></script>
-  <!-- App JS -->
+  <!-- App -->
   <script type="module" src="app.js"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
 </body>
 </html>
-
 
 
 
